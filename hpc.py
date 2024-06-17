@@ -3,8 +3,7 @@ import torchvision
 import torch.utils.data
 import jax, optax
 from jax import nn, vmap
-from jax import numpy as jnp
-from jax import random as jrandom
+from jax import numpy as jnp, random as jrandom
 import equinox as eqx
 from layers import FlashKAN
 
@@ -12,6 +11,7 @@ from time import time
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product
+import json
 # %%
 key = jrandom.key(23)
 # %% MNIST data loaders
@@ -121,8 +121,8 @@ def train_model(net, opt_state, epochs=30, *, key):
     
     return net, history
 # %%
-Gs = [50]
-ws = [32]
+Gs = [50, 100]
+ws = [32, 64]
 logs_flashkan = []
 
 for G, w in product(Gs, ws):
@@ -132,4 +132,10 @@ for G, w in product(Gs, ws):
     skey, key = jrandom.split(key)
     net, hist = train_model(net, opt_state, 10, key=skey)
     logs_flashkan.append(hist)
+# %%
+with open("./Data/flashkan_grid.json", 'w') as f:
+    data = {}
+    for i, (G, w) in enumerate(product(Gs, ws)):
+        data[f"G_{G}_w_{w}"] = logs_flashkan[i]
+    json.dump(data, f)
 # %%
